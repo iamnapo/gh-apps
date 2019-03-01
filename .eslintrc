@@ -1,0 +1,6 @@
+{
+  "extends": "iamnapo",
+  "rules": {
+    "no-await-in-loop": "off"
+  }
+}
