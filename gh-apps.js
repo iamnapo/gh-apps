@@ -10,6 +10,14 @@ const delay = require('delay');
 const language = ['javascript', 'typescript'][0];
 
 const stars = [
+  { from: 80, to: 82 },
+  { from: 83, to: 84 },
+  { from: 85, to: 87 },
+  { from: 88, to: 89 },
+  { from: 90, to: 92 },
+  { from: 93, to: 94 },
+  { from: 95, to: 97 },
+  { from: 98, to: 99 },
   { from: 100, to: 104 },
   { from: 105, to: 109 },
   { from: 110, to: 114 },
