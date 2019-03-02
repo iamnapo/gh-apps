@@ -5,23 +5,28 @@ const Octokit = require('@octokit/rest');
 const got = require('got');
 const ora = require('ora');
 const makeDir = require('make-dir');
+const delay = require('delay');
 
-const PAGES_TO_TEST = 10;
+const FROM_PAGE = parseInt(process.env.FROM_PAGE, 10) || 1;
+const TO_PAGE = parseInt(process.env.TO_PAGE, 10) || 10;
 
 (async () => {
   const octokit = new Octokit({ auth: `token ${process.env.GITHUB_TOKEN}` });
   await makeDir(path.join(__dirname, 'data'));
-  for (let i = 0; i < PAGES_TO_TEST; i += 1) {
-    const spinner = ora().start(`Checking page ${i + 1}/${PAGES_TO_TEST}`);
+  for (let i = FROM_PAGE; i < TO_PAGE + 1; i += 1) {
+    const spinner = ora().start(`Checking page ${i}/${TO_PAGE}`);
     const { data: { resources: { core: { remaining, reset } } } } = await octokit.rateLimit.get({});
     if (remaining === 0) {
-      spinner.fail(`Rate limit is reached 😔. Try again at ${new Date(reset * 1000).toLocaleString()}.`);
-      return;
+      spinner.warn(`Rate limit is reached 😔. Will wait until ${new Date(reset * 1000).toLocaleString()}.`);
+      spinner.start('Waiting 🕒');
+      await delay((reset + 1) * 1000 - Date.now());
+      spinner.succeed();
+      spinner.start(`Checking page ${i}/${TO_PAGE}`);
     }
     const { data: { items: repos } } = await octokit.search.repos({
       q: 'language:javascript sort:stars',
       per_page: 100,
-      page: i + 1,
+      page: i,
     });
     repos.forEach(async (repo) => {
       try {
@@ -41,4 +46,4 @@ const PAGES_TO_TEST = 10;
     spinner.succeed();
   }
   ora().succeed('Done! 🎉');
-})();
+})().then(() => process.exit(0));
