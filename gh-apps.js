@@ -7,9 +7,15 @@ const ora = require('ora');
 const makeDir = require('make-dir');
 const delay = require('delay');
 
-const language = ['javascript', 'typescript'][0];
+const octokit = new Octokit({ auth: `token ${process.env.GITHUB_TOKEN}` });
+const language = ['javascript', 'typescript'][parseInt(process.env.LANGUAGE, 10) || 0];
+const ONLY_TOP_LEVEL = process.env.ONLY_TOP_LEVEL === 'true';
 
 const stars = [
+  { from: 70, to: 71 },
+  { from: 72, to: 74 },
+  { from: 75, to: 77 },
+  { from: 78, to: 79 },
   { from: 80, to: 82 },
   { from: 83, to: 84 },
   { from: 85, to: 87 },
@@ -69,8 +75,7 @@ const stars = [
 
 (async () => {
   try {
-    const octokit = new Octokit({ auth: `token ${process.env.GITHUB_TOKEN}` });
-    await makeDir(path.join(__dirname, `data_${language}`));
+    await makeDir(path.join(__dirname, `${language}_packages`));
     for (const range of stars) {
       ora().info(`stars ∈ [${range.from},${range.to}]`);
       let reposFound = 0;
@@ -93,28 +98,54 @@ const stars = [
           spinner.stop();
           break;
         }
-        repos.forEach(async (repo) => {
+        const reposPromise = repos.map(async (repo) => {
           try {
-            const { data: { content } } = await octokit.repos.getContents({
-              owner: repo.owner.login,
-              repo: repo.name,
-              path: 'package.json',
-            });
-            const packageJSON = JSON.parse(Buffer.from(content, 'base64'));
-            if (!packageJSON.name) return;
-            if (packageJSON.private || packageJSON.name.includes('-cli')) {
-              reposFound += 1;
-              await writeFile(path.join(__dirname, `data_${language}`, `${repo.name}.json`), JSON.stringify(packageJSON, null, 2));
-              return;
+            let listOfContents = [];
+            let truncated = true;
+            if (!ONLY_TOP_LEVEL) {
+              const { data } = await octokit.git.getTree({
+                owner: repo.owner.login,
+                repo: repo.name,
+                tree_sha: repo.default_branch,
+                recursive: 1,
+              });
+              listOfContents = data.tree;
+              ({ truncated } = data);
             }
-            const { body } = await got(`https://www.npmjs.com/search/suggestions?q=${packageJSON.name}`, { json: true });
-            const npmBestResult = body[0];
-            if (npmBestResult && npmBestResult.links && npmBestResult.links.repository
-              && npmBestResult.links.repository.toLowerCase() === repo.html_url.toLowerCase()) return;
-            reposFound += 1;
-            await writeFile(path.join(__dirname, `data_${language}`, `${repo.name}.json`), JSON.stringify(packageJSON, null, 2));
+            if (truncated) listOfContents.push({ path: 'package.json' });
+            const contentsPromise = listOfContents.map(async (file) => {
+              try {
+                if (!file.path.toLowerCase().endsWith('package.json')
+                || file.path.toLowerCase().includes('node_modules')
+                || file.path.toLowerCase().includes('vendor')
+                || file.path.toLowerCase().includes('example')
+                || file.path.toLowerCase().includes('test')) return;
+                const { data: { content, path: filePath } } = await octokit.repos.getContents({
+                  owner: repo.owner.login,
+                  repo: repo.name,
+                  path: file.path,
+                });
+                if (!content) return;
+                const packageJSON = JSON.parse(Buffer.from(content, 'base64'));
+                if (!packageJSON.name && !packageJSON.private) return;
+                if (packageJSON.private || packageJSON.name.toLowerCase().includes('-cli')) {
+                  reposFound += 1;
+                  await writeFile(path.join(__dirname, `${language}_packages`, `${repo.full_name.concat('_', filePath).replace(/\//g, '_')}`),
+                    JSON.stringify(packageJSON, null, 2));
+                  return;
+                }
+                const { body } = await got(`https://api.npms.io/v2/search/suggestions?q=${packageJSON.name}`, { json: true });
+                if (body.some(({ package: npmPkg }) => npmPkg.links.repository
+                 && npmPkg.links.repository.toLowerCase() === repo.html_url.toLowerCase())) return;
+                reposFound += 1;
+                await writeFile(path.join(__dirname, `${language}_packages`, `${repo.full_name.concat('_', filePath).replace(/\//g, '_')}`),
+                  JSON.stringify(packageJSON, null, 2));
+              } catch { /**/ }
+            });
+            await Promise.all(contentsPromise);
           } catch { /**/ }
         });
+        await Promise.all(reposPromise);
         spinner.stop();
       }
       ora().succeed(`Found ${reposFound} repos! 🎉`);

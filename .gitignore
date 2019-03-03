@@ -58,4 +58,4 @@ typings/
 .env
 
 # results folder
-data_*/
+*_packages/
