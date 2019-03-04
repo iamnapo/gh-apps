@@ -3,6 +3,7 @@
   "rules": {
     "no-await-in-loop": "off",
     "no-restricted-syntax": "off",
-    "no-loop-func": "off"
+    "no-loop-func": "off",
+    "no-continue": "off"
   }
 }

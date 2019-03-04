@@ -23,8 +23,8 @@
 
 ## Dataset
 
-* [dataset_top_level_only.zip](./dataset_top_level_only.zip) contains __3961__ JavaScript and __846__ TypeScript package.json files from repos with `stars > 70`.
-* [dataset_tree_traversal.zip](./dataset_tree_traversal.zip) contains __2499__ TypeScript package.json files from repos with `stars > 70`.
+* [dataset_top_level_only.zip](./dataset_top_level_only.zip) contains __3960__ JavaScript and __846__ TypeScript package.json files from repos with `stars > 70`.
+* [dataset_tree_traversal.zip](./dataset_tree_traversal.zip) contains __34347__ JavaScript and __2498__ TypeScript package.json files from repos with `stars > 70`.
 
 ## License
 

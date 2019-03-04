@@ -81,14 +81,6 @@ const stars = [
       let reposFound = 0;
       for (let i = 1; i < 11; i += 1) {
         const spinner = ora().start(`Checking page ${i}|${10}`);
-        const { data: { resources: { core: { remaining, reset } } } } = await octokit.rateLimit.get({});
-        if (remaining === 0) {
-          spinner.warn(`Rate limit is reached. 😔 Will wait until ${new Date(reset * 1000).toLocaleTimeString()}.`);
-          spinner.start('Waiting 🕒');
-          await delay((reset + 1) * 1000 - Date.now());
-          spinner.succeed();
-          spinner.start(`Checking page ${i}/${10}`);
-        }
         const { data: { items: repos } } = await octokit.search.repos({
           q: `language:${language} stars:${range.from}..${range.to} sort:stars`,
           per_page: 100,
@@ -113,37 +105,46 @@ const stars = [
               ({ truncated } = data);
             }
             if (truncated) listOfContents.push({ path: 'package.json' });
-            const contentsPromise = listOfContents.map(async (file) => {
+            for (const file of listOfContents) {
               try {
                 if (!file.path.toLowerCase().endsWith('package.json')
                 || file.path.toLowerCase().includes('node_modules')
                 || file.path.toLowerCase().includes('vendor')
                 || file.path.toLowerCase().includes('example')
-                || file.path.toLowerCase().includes('test')) return;
+                || file.path.toLowerCase().includes('test')) continue;
                 const { data: { content, path: filePath } } = await octokit.repos.getContents({
                   owner: repo.owner.login,
                   repo: repo.name,
                   path: file.path,
                 });
-                if (!content) return;
+                if (!content) continue;
                 const packageJSON = JSON.parse(Buffer.from(content, 'base64'));
-                if (!packageJSON.name && !packageJSON.private) return;
+                if (!packageJSON.name && !packageJSON.private) continue;
                 if (packageJSON.private || packageJSON.name.toLowerCase().includes('-cli')) {
                   reposFound += 1;
                   await writeFile(path.join(__dirname, `${language}_packages`, `${repo.full_name.concat('_', filePath).replace(/\//g, '_')}`),
                     JSON.stringify(packageJSON, null, 2));
-                  return;
+                  continue;
                 }
                 const { body } = await got(`https://api.npms.io/v2/search/suggestions?q=${packageJSON.name}`, { json: true });
                 if (body.some(({ package: npmPkg }) => npmPkg.links.repository
-                 && npmPkg.links.repository.toLowerCase() === repo.html_url.toLowerCase())) return;
+                 && npmPkg.links.repository.toLowerCase() === repo.html_url.toLowerCase())) continue;
                 reposFound += 1;
                 await writeFile(path.join(__dirname, `${language}_packages`, `${repo.full_name.concat('_', filePath).replace(/\//g, '_')}`),
                   JSON.stringify(packageJSON, null, 2));
               } catch { /**/ }
-            });
-            await Promise.all(contentsPromise);
-          } catch { /**/ }
+            }
+          } catch (error) {
+            if (error.status === 403 && !spinner.text.startsWith('Waiting')) {
+              const reset = parseInt(error.headers['x-ratelimit-reset'], 10);
+              spinner.warn(`Rate limit is reached. 😔 Will wait until ${new Date(reset * 1000).toLocaleTimeString()}.`);
+              spinner.start('Waiting 🕒');
+              await delay((reset + 1) * 1000 - Date.now());
+              spinner.succeed();
+              spinner.start(`Checking page ${i}/${10}`);
+              i -= 1;
+            }
+          }
         });
         await Promise.all(reposPromise);
         spinner.stop();
