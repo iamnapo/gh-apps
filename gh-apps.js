@@ -7,7 +7,8 @@ const ora = require('ora');
 const makeDir = require('make-dir');
 const delay = require('delay');
 
-const octokit = new Octokit({ auth: `token ${process.env.GITHUB_TOKEN}` });
+let tokens;
+try { tokens = JSON.parse(process.env.GITHUB_TOKENS); } catch { tokens = [process.env.GITHUB_TOKEN]; }
 const language = ['javascript', 'typescript'][parseInt(process.env.LANGUAGE, 10) || 0];
 const ONLY_TOP_LEVEL = process.env.ONLY_TOP_LEVEL === 'true';
 
@@ -75,6 +76,8 @@ const stars = [
 
 (async () => {
   try {
+    let currentTokenIndex = 0;
+    let octokit = new Octokit({ auth: `token ${tokens[currentTokenIndex]}` });
     await makeDir(path.join(__dirname, `${language}_packages`));
     for (const range of stars) {
       ora().info(`stars ∈ [${range.from},${range.to}]`);
@@ -91,6 +94,7 @@ const stars = [
           break;
         }
         const reposPromise = repos.map(async (repo) => {
+          const initialI = i;
           try {
             let listOfContents = [];
             let truncated = true;
@@ -108,10 +112,7 @@ const stars = [
             for (const file of listOfContents) {
               try {
                 if (!file.path.toLowerCase().endsWith('package.json')
-                || file.path.toLowerCase().includes('node_modules')
-                || file.path.toLowerCase().includes('vendor')
-                || file.path.toLowerCase().includes('example')
-                || file.path.toLowerCase().includes('test')) continue;
+                || ['node_modules', 'vendor', 'example', 'test', 'doc', 'sample', 'demo'].some(el => file.path.toLowerCase().includes(el))) continue;
                 const { data: { content, path: filePath } } = await octokit.repos.getContents({
                   owner: repo.owner.login,
                   repo: repo.name,
@@ -135,14 +136,21 @@ const stars = [
               } catch { /**/ }
             }
           } catch (error) {
-            if (error.status === 403 && !spinner.text.startsWith('Waiting')) {
-              const reset = parseInt(error.headers['x-ratelimit-reset'], 10);
-              spinner.warn(`Rate limit is reached. 😔 Will wait until ${new Date(reset * 1000).toLocaleTimeString()}.`);
-              spinner.start('Waiting 🕒');
-              await delay((reset + 1) * 1000 - Date.now());
-              spinner.succeed();
-              spinner.start(`Checking page ${i}/${10}`);
+            if (error.status === 403 && initialI === i) {
               i -= 1;
+              const reset = parseInt(error.headers['x-ratelimit-reset'], 10);
+              currentTokenIndex += 1;
+              currentTokenIndex %= tokens.length;
+              if (currentTokenIndex === 0) {
+                spinner.warn(`Rate limit is reached. 😔 Will wait until ${new Date(reset * 1000).toLocaleTimeString()}.`);
+                spinner.start('Waiting 🕒');
+                await delay((reset + 1) * 1000 - Date.now());
+                spinner.succeed();
+              } else {
+                spinner.warn(`Rate limit is reached. Switching to token ${currentTokenIndex + 1} of ${tokens.length}.`);
+                octokit = new Octokit({ auth: `token ${tokens[currentTokenIndex]}` });
+              }
+              spinner.start(`Checking page ${i + 1}|${10}`);
             }
           }
         });

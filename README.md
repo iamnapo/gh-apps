@@ -2,15 +2,18 @@
 
 > Code to extract package.json from popular JavaScript|TypeScript repositories that are not on npm
 
-[![travis](https://img.shields.io/travis/com/iamnapo/gh-apps.svg?style=flat-square&logo=travis&label=)](https://travis-ci.com/iamnapo/gh-apps) [![license](https://img.shields.io/github/license/iamnapo/gh-apps.svg?style=flat-square)](https://github.com/iamnapo/gh-apps/blob/master/LICENSE)
+[![travis](https://img.shields.io/travis/com/iamnapo/gh-apps.svg?style=flat-square&logo=travis&label=)](https://travis-ci.com/iamnapo/gh-apps) [![license](https://img.shields.io/github/license/iamnapo/gh-apps.svg?style=flat-square)](./LICENSE)
 
 ## Usage
 
 * Create a `.env` file containing the variables:
 
-  * `GITHUB_TOKEN`: your github API token.
+  * `GITHUB_TOKEN`<sup>*</sup>: your github API token.
   * `LANGUAGE`: `'0'` for JavaScript, `'1'` for TypeScript. Defaults to `'0'`.
   * `ONLY_TOP_LEVEL`: `'false'` to fully traverse the git tree for `package.json` files. Defaults to `'true'`.
+  <br/>
+
+  > <sup>*</sup> If the script reaches [GitHub's rate limit](https://developer.github.com/v3/#rate-limiting), it will pause and resume when the limit resets. You can also use `GITHUB_TOKENS` to provide an array of tokens and the script will circle through them if the limit is reached.
 
 * Install dependencies & run the script
 
@@ -18,8 +21,6 @@
   npm i
   npm start
   ```
-
-  > Note: If the script reaches [GitHub's rate limit](https://developer.github.com/v3/#rate-limiting), it will pause and resume when the limit resets.
 
 ## Dataset
 
