@@ -9,7 +9,7 @@
 * Create a `.env` file containing the variables:
 
   * `GITHUB_TOKEN`<sup>*</sup>: your github API token.
-  * `LANGUAGE`: `'0'` for JavaScript, `'1'` for TypeScript. Defaults to `'0'`.
+  * `PROGRAMMING_LANGUAGE`: `'0'` for JavaScript, `'1'` for TypeScript. Defaults to `'0'`.
   * `ONLY_TOP_LEVEL`: `'false'` to fully traverse the git tree for `package.json` files. Defaults to `'true'`.
   <br/>
 
@@ -24,8 +24,10 @@
 
 ## Dataset
 
-* [dataset_top_level_only.zip](./dataset_top_level_only.zip) contains __3960__ JavaScript and __846__ TypeScript package.json files from repos with `stars > 70`.
-* [dataset_tree_traversal.zip](./dataset_tree_traversal.zip) contains __34347__ JavaScript and __2498__ TypeScript package.json files from repos with `stars > 70`.
+* [dataset_top_level_only.zip](./dataset_top_level_only.zip) contains __12341__ JavaScript and __1543__ TypeScript package.json files from repos with `stars > 70`.
+* [dataset_tree_traversal.zip](./dataset_tree_traversal.zip) contains __37702__ JavaScript and __5188__ TypeScript package.json files from repos with `stars > 70`.
+
+> Filename format is: `<stars>📎<owner>📎<repo>📎[<path>]package.json`, where reserved characters (e.g. `/`) are converted to `!`.
 
 ## License
 

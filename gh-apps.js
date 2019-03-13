@@ -1,15 +1,16 @@
 require('dotenv').load();
 const path = require('path');
-const writeFile = require('util').promisify(require('fs').writeFile);
+const writeFileAsync = require('util').promisify(require('fs').writeFile);
 const Octokit = require('@octokit/rest');
 const got = require('got');
 const ora = require('ora');
 const makeDir = require('make-dir');
 const delay = require('delay');
+const filenamify = require('filenamify');
 
 let tokens;
 try { tokens = JSON.parse(process.env.GITHUB_TOKENS); } catch { tokens = [process.env.GITHUB_TOKEN]; }
-const language = ['javascript', 'typescript'][parseInt(process.env.LANGUAGE, 10) || 0];
+const language = ['javascript', 'typescript'][parseInt(process.env.PROGRAMMING_LANGUAGE, 10) || 0];
 const ONLY_TOP_LEVEL = process.env.ONLY_TOP_LEVEL === 'true';
 
 const stars = [
@@ -76,6 +77,9 @@ const stars = [
 
 (async () => {
   try {
+    const writeFile = (repo, filePath, packageJSON) => writeFileAsync(path.join(__dirname, `${language}_packages`,
+      `${filenamify(repo.stargazers_count.toString())}📎${filenamify(repo.owner.login)}📎${filenamify(repo.name)}📎${filenamify(filePath)}`),
+    JSON.stringify(packageJSON, null, 2));
     let currentTokenIndex = 0;
     let octokit = new Octokit({ auth: `token ${tokens[currentTokenIndex]}` });
     await makeDir(path.join(__dirname, `${language}_packages`));
@@ -107,6 +111,9 @@ const stars = [
               });
               listOfContents = data.tree;
               ({ truncated } = data);
+            } else {
+              const { data: { resources: { core: { remaining, reset } } } } = await octokit.rateLimit.get({});
+              if (remaining === 0) throw Object({ status: 403, headers: { 'x-ratelimit-reset': reset } });
             }
             if (truncated) listOfContents.push({ path: 'package.json' });
             for (const file of listOfContents) {
@@ -123,16 +130,14 @@ const stars = [
                 if (!packageJSON.name && !packageJSON.private) continue;
                 if (packageJSON.private || packageJSON.name.toLowerCase().includes('-cli')) {
                   reposFound += 1;
-                  await writeFile(path.join(__dirname, `${language}_packages`, `${repo.full_name.concat('_', filePath).replace(/\//g, '_')}`),
-                    JSON.stringify(packageJSON, null, 2));
+                  await writeFile(repo, filePath, packageJSON);
                   continue;
                 }
                 const { body } = await got(`https://api.npms.io/v2/search/suggestions?q=${packageJSON.name}`, { json: true });
                 if (body.some(({ package: npmPkg }) => npmPkg.links.repository
                  && npmPkg.links.repository.toLowerCase() === repo.html_url.toLowerCase())) continue;
                 reposFound += 1;
-                await writeFile(path.join(__dirname, `${language}_packages`, `${repo.full_name.concat('_', filePath).replace(/\//g, '_')}`),
-                  JSON.stringify(packageJSON, null, 2));
+                await writeFile(repo, filePath, packageJSON);
               } catch { /**/ }
             }
           } catch (error) {
@@ -145,7 +150,7 @@ const stars = [
                 spinner.warn(`Rate limit is reached. 😔 Will wait until ${new Date(reset * 1000).toLocaleTimeString()}.`);
                 spinner.start('Waiting 🕒');
                 await delay((reset + 1) * 1000 - Date.now());
-                spinner.succeed();
+                spinner.succeed('Waited! ✅');
               } else {
                 spinner.warn(`Rate limit is reached. Switching to token ${currentTokenIndex + 1} of ${tokens.length}.`);
                 octokit = new Octokit({ auth: `token ${tokens[currentTokenIndex]}` });
