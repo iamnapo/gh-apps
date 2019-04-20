@@ -17,7 +17,8 @@
   "main": "gh-apps.js",
   "scripts": {
     "start": "node gh-apps.js",
-    "test": "eslint ."
+    "test": "eslint .",
+    "count-repos": "node count-repos.js"
   },
   "husky": {
     "hooks": {
@@ -25,20 +26,20 @@
     }
   },
   "dependencies": {
-    "@octokit/rest": "^16.17.0",
-    "delay": "^4.1.0",
-    "dotenv": "^6.2.0",
-    "filenamify": "^3.0.0",
+    "@octokit/rest": "^16.25.0",
+    "delay": "^4.2.0",
+    "dotenv": "^7.0.0",
+    "filenamify": "^4.0.0",
     "got": "^9.6.0",
-    "make-dir": "^2.1.0",
-    "ora": "^3.2.0"
+    "make-dir": "^3.0.0",
+    "ora": "^3.4.0"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",
-    "eslint": "^5.15.1",
+    "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-iamnapo": "^1.0.2",
-    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-import": "^2.17.2",
     "eslint-plugin-jsx-a11y": "^6.2.1",
     "eslint-plugin-react": "^7.12.4",
     "husky": "^1.3.1"

@@ -1,4 +1,4 @@
-require('dotenv').load();
+require('dotenv').config();
 const path = require('path');
 const writeFileAsync = require('util').promisify(require('fs').writeFile);
 const Octokit = require('@octokit/rest');
