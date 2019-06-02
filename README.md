@@ -2,7 +2,7 @@
 
 > Code to extract package.json from popular JavaScript|TypeScript repositories that are not on npm
 
-[![travis](https://img.shields.io/travis/com/iamnapo/gh-apps.svg?style=flat-square&logo=travis&label=)](https://travis-ci.com/iamnapo/gh-apps) [![license](https://img.shields.io/github/license/iamnapo/gh-apps.svg?style=flat-square)](./LICENSE)
+[![travis](https://img.shields.io/travis/com/iamnapo/gh-apps.svg?style=for-the-badge&logo=travis&label=)](https://travis-ci.com/iamnapo/gh-apps) [![license](https://img.shields.io/github/license/iamnapo/gh-apps.svg?style=for-the-badge)](./LICENSE)
 
 ## Usage
 

@@ -1,6 +1,6 @@
 require('dotenv').config();
 const writeFileAsync = require('util').promisify(require('fs').writeFile);
-const Octokit = require('@octokit/rest');
+const Graphql = require('@octokit/graphql');
 const ora = require('ora');
 const delay = require('delay');
 
@@ -28,16 +28,17 @@ function resultToCSV(data = null, delim = ', ', linedelim = '\n') {
 (async () => {
   try {
     let currentTokenIndex = 0;
-    let octokit = new Octokit({ auth: `token ${tokens[currentTokenIndex]}` });
+    let gql = Graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
     let currentStar = 0;
     const results = [];
     const spinner = ora().start(`Checking count for ${currentStar} stars.`);
     for (const _ of new Array(3 * starLimit).keys()) { // eslint-disable-line no-unused-vars
       try {
-        const { data: { total_count: count } } = await octokit.search.repos({
-          q: `language:${language} stars:${currentStar}`,
-          per_page: 1,
-        });
+        const { search: { repositoryCount: count } } = await gql(`query getRepoCount($queryString: String!) {
+          search(query: $queryString, type: REPOSITORY, first: 1) {
+            repositoryCount
+          }
+        }`, { queryString: `language:${language} stars:${currentStar}` });
         results.push({ stars: currentStar, repos: count });
         if (currentStar === starLimit) break;
         currentStar += 1;
@@ -54,13 +55,13 @@ function resultToCSV(data = null, delim = ', ', linedelim = '\n') {
             spinner.succeed('Waited! ✅');
           } else {
             spinner.warn(`Rate limit is reached. Switching to token ${currentTokenIndex + 1} of ${tokens.length}.`);
-            octokit = new Octokit({ auth: `token ${tokens[currentTokenIndex]}` });
+            gql = Graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
           }
           spinner.start(`Checking count for ${currentStar} stars.`);
           if (currentTokenIndex === 0) {
             await delay((reset + 1) * 1000 - Date.now());
           } else {
-            octokit = new Octokit({ auth: `token ${tokens[currentTokenIndex]}` });
+            gql = Graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
           }
         }
       }

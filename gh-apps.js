@@ -1,7 +1,7 @@
 require('dotenv').config();
 const path = require('path');
 const writeFileAsync = require('util').promisify(require('fs').writeFile);
-const Octokit = require('@octokit/rest');
+const Graphql = require('@octokit/graphql');
 const got = require('got');
 const ora = require('ora');
 const makeDir = require('make-dir');
@@ -11,7 +11,7 @@ const filenamify = require('filenamify');
 let tokens;
 try { tokens = JSON.parse(process.env.GITHUB_TOKENS); } catch { tokens = [process.env.GITHUB_TOKEN]; }
 const language = ['javascript', 'typescript'][parseInt(process.env.PROGRAMMING_LANGUAGE, 10) || 0];
-const ONLY_TOP_LEVEL = process.env.ONLY_TOP_LEVEL === 'true';
+const ONLY_TOP_LEVEL = process.env.ONLY_TOP_LEVEL !== 'false';
 
 const stars = [
   { from: 70, to: 71 },
@@ -78,67 +78,176 @@ const stars = [
 (async () => {
   try {
     const writeFile = (repo, filePath, packageJSON) => writeFileAsync(path.join(__dirname, `${language}_packages`,
-      `${filenamify(repo.stargazers_count.toString())}📎${filenamify(repo.owner.login)}📎${filenamify(repo.name)}📎${filenamify(filePath)}`),
+      `${filenamify(repo.stargazers.totalCount.toString())}📎${filenamify(repo.owner.login)}📎${filenamify(repo.name)}📎${filenamify(filePath)}`),
     JSON.stringify(packageJSON, null, 2));
+    const dontCareForTheseEntries = filePath => ['node_modules', 'vendor', 'example', 'test', 'doc', 'sample', 'demo']
+      .some(el => filePath.toLowerCase().includes(el));
     let currentTokenIndex = 0;
-    let octokit = new Octokit({ auth: `token ${tokens[currentTokenIndex]}` });
+    let gql = Graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
     await makeDir(path.join(__dirname, `${language}_packages`));
     for (const range of stars) {
       ora().info(`stars ∈ [${range.from},${range.to}]`);
-      let reposFound = 0;
+      let filesFound = 0;
+      let endCursor;
+      let canCheckNext = true;
       for (let i = 1; i < 11; i += 1) {
         const spinner = ora().start(`Checking page ${i}|${10}`);
-        const { data: { items: repos } } = await octokit.search.repos({
-          q: `language:${language} stars:${range.from}..${range.to} sort:stars`,
-          per_page: 100,
-          page: i,
-        });
-        if (repos.length === 0) {
+        if (!canCheckNext) {
           spinner.stop();
           break;
         }
-        const reposPromise = repos.map(async (repo) => {
+        const { search: { edges: repos, pageInfo: { endCursor: lastCursor, hasNextPage } } } = await gql(`
+          query getRepos($queryString: String!, $after: String) {
+            search(query: $queryString, type: REPOSITORY, first: 100, after: $after) {
+              edges {
+                node {
+                  ... on Repository {
+                    owner {
+                      login
+                    }
+                    name
+                    defaultBranchRef {
+                      name
+                    }
+                    url
+                    stargazers {
+                      totalCount
+                    }
+                  }
+                }
+              }
+              pageInfo {
+                endCursor
+                hasNextPage
+              }
+            }
+          }`, { queryString: `language:${language} stars:${range.from}..${range.to} sort:stars`, after: endCursor || null });
+        endCursor = lastCursor;
+        canCheckNext = hasNextPage;
+        const reposPromise = repos.map(async ({ node: repo }) => {
           const initialI = i;
           try {
-            let listOfContents = [];
-            let truncated = true;
+            const listOfContents = [];
             if (!ONLY_TOP_LEVEL) {
-              const { data } = await octokit.git.getTree({
-                owner: repo.owner.login,
-                repo: repo.name,
-                tree_sha: repo.default_branch,
-                recursive: 1,
+              const { repository: { object: { entries } }, rateLimit: { remaining, resetAt } } = await gql(`
+              query getTree($owner: String!, $name: String!, $expression: String!) {
+                repository(owner: $owner, name: $name) {
+                  object(expression: $expression) {
+                    ... on Tree {
+                      ... treeFields
+                    }
+                  }
+                }
+                rateLimit {
+                  remaining
+                  resetAt
+                }
+              }
+              fragment treeFields on Tree {
+                entries {
+                  name
+                  object {
+                    ... on Blob {
+                      text
+                    }
+                    ...on Tree {
+                      entries {
+                        name
+                        object {
+                          ... on Blob {
+                            text
+                          }
+                          ... on Tree {
+                            entries {
+                              name
+                              object {
+                                ... on Blob {
+                                  text
+                                }
+                                ... on Tree {
+                                  entries {
+                                    name
+                                    object {
+                                      ... on Blob {
+                                        text
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }`, { owner: repo.owner.login, name: repo.name, expression: `${repo.defaultBranchRef.name}:` });
+              entries.forEach((top) => {
+                if (!top.object.entries) {
+                  const filePath = top.name.toLowerCase();
+                  if (filePath.endsWith('package.json')) listOfContents.push({ path: filePath, content: top.object.text });
+                } else {
+                  if (dontCareForTheseEntries(top.name)) return;
+                  top.object.entries.forEach((deep1) => {
+                    if (!deep1.object.entries) {
+                      const filePath = path.join(top.name, deep1.name).toLowerCase();
+                      if (filePath.endsWith('package.json')) listOfContents.push({ path: filePath, content: deep1.object.text });
+                    } else {
+                      if (dontCareForTheseEntries(deep1.name)) return;
+                      deep1.object.entries.forEach((deep2) => {
+                        if (!deep2.object.entries) {
+                          const filePath = path.join(top.name, deep1.name, deep2.name).toLowerCase();
+                          if (filePath.endsWith('package.json')) listOfContents.push({ path: filePath, content: deep2.object.text });
+                        } else {
+                          if (dontCareForTheseEntries(deep2.name)) return;
+                          deep2.object.entries.forEach((deep3) => {
+                            if (deep3.object.text) {
+                              const filePath = path.join(top.name, deep1.name, deep2.name, deep3.name).toLowerCase();
+                              if (filePath.endsWith('package.json')) listOfContents.push({ path: filePath, content: deep3.object.text });
+                            }
+                          });
+                        }
+                      });
+                    }
+                  });
+                }
               });
-              listOfContents = data.tree;
-              ({ truncated } = data);
+              if (remaining === 0) throw Object({ status: 403, headers: { 'x-ratelimit-reset': resetAt } });
             } else {
-              const { data: { resources: { core: { remaining, reset } } } } = await octokit.rateLimit.get({});
-              if (remaining === 0) throw Object({ status: 403, headers: { 'x-ratelimit-reset': reset } });
+              const { repository: { object: { text: content } }, rateLimit: { remaining, resetAt } } = await gql(`
+              query getContents($owner: String!, $name: String!, $expression: String!) {
+                repository(owner: $owner, name: $name) {
+                  object(expression: $expression) {
+                    ... on Blob {
+                      text
+                    }
+                  }
+                }
+                rateLimit {
+                  remaining
+                  resetAt
+                }
+              }`, { owner: repo.owner.login, name: repo.name, expression: `${repo.defaultBranchRef.name}:package.json` });
+              listOfContents.push({ path: 'package.json', content });
+              if (remaining === 0) throw Object({ status: 403, headers: { 'x-ratelimit-reset': resetAt } });
             }
-            if (truncated) listOfContents.push({ path: 'package.json' });
             for (const file of listOfContents) {
+              const { path: filePath, content } = file;
               try {
-                if (!file.path.toLowerCase().endsWith('package.json')
-                || ['node_modules', 'vendor', 'example', 'test', 'doc', 'sample', 'demo'].some(el => file.path.toLowerCase().includes(el))) continue;
-                const { data: { content, path: filePath } } = await octokit.repos.getContents({
-                  owner: repo.owner.login,
-                  repo: repo.name,
-                  path: file.path,
-                });
-                if (!content) continue;
-                const packageJSON = JSON.parse(Buffer.from(content, 'base64'));
+                const packageJSON = JSON.parse(content);
                 if (!packageJSON.name && !packageJSON.private) continue;
                 if (packageJSON.private || packageJSON.name.toLowerCase().includes('-cli')) {
-                  reposFound += 1;
+                  filesFound += 1;
                   await writeFile(repo, filePath, packageJSON);
                   continue;
                 }
                 const { body } = await got(`https://api.npms.io/v2/search/suggestions?q=${packageJSON.name}`, { json: true });
                 if (body.some(({ package: npmPkg }) => npmPkg.links.repository
-                 && npmPkg.links.repository.toLowerCase() === repo.html_url.toLowerCase())) continue;
-                reposFound += 1;
+                 && npmPkg.links.repository.toLowerCase() === repo.url.toLowerCase())) continue;
+                filesFound += 1;
                 await writeFile(repo, filePath, packageJSON);
-              } catch { /**/ }
+              } catch { /** empty */ }
             }
           } catch (error) {
             if (error.status === 403 && initialI === i) {
@@ -153,7 +262,7 @@ const stars = [
                 spinner.succeed('Waited! ✅');
               } else {
                 spinner.warn(`Rate limit is reached. Switching to token ${currentTokenIndex + 1} of ${tokens.length}.`);
-                octokit = new Octokit({ auth: `token ${tokens[currentTokenIndex]}` });
+                gql = Graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
               }
               spinner.start(`Checking page ${i + 1}|${10}`);
             }
@@ -162,7 +271,7 @@ const stars = [
         await Promise.all(reposPromise);
         spinner.stop();
       }
-      ora().succeed(`Found ${reposFound} repos! 🎉`);
+      ora().succeed(`Found ${filesFound} package.json files! 🎉`);
     }
     ora().succeed('Done! ✅');
   } catch (error) { ora().fail(error.message); }
