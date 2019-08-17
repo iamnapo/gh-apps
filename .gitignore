@@ -57,5 +57,6 @@ typings/
 # dotenv environment variables file
 .env
 
-# results folder
+# results
 *_packages/
+*.csv

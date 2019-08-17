@@ -1,15 +1,15 @@
-require('dotenv').config();
-const writeFileAsync = require('util').promisify(require('fs').writeFile);
-const Graphql = require('@octokit/graphql');
-const ora = require('ora');
-const delay = require('delay');
+require("dotenv").config();
+const writeFileAsync = require("util").promisify(require("fs").writeFile);
+const { graphql } = require("@octokit/graphql");
+const ora = require("ora");
+const delay = require("delay");
 
 let tokens;
 try { tokens = JSON.parse(process.env.GITHUB_TOKENS); } catch { tokens = [process.env.GITHUB_TOKEN]; }
-const language = ['javascript', 'typescript'][parseInt(process.env.PROGRAMMING_LANGUAGE, 10) || 0];
+const language = ["javascript", "typescript"][parseInt(process.env.PROGRAMMING_LANGUAGE, 10) || 0];
 const starLimit = parseInt(process.env.STAR_COUNT, 10) || 1000;
 
-function resultToCSV(data = null, delim = ', ', linedelim = '\n') {
+function resultToCSV(data = null, delim = ", ", linedelim = "\n") {
   const keys = Object.keys(data[0]);
   let result = keys.join(delim) + linedelim;
 
@@ -28,7 +28,7 @@ function resultToCSV(data = null, delim = ', ', linedelim = '\n') {
 (async () => {
   try {
     let currentTokenIndex = 0;
-    let gql = Graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
+    let gql = graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
     let currentStar = 0;
     const results = [];
     const spinner = ora().start(`Checking count for ${currentStar} stars.`);
@@ -45,28 +45,28 @@ function resultToCSV(data = null, delim = ', ', linedelim = '\n') {
         spinner.start(`Checking count for ${currentStar} stars.`);
       } catch (error) {
         if (error.status === 403) {
-          const reset = parseInt(error.headers['x-ratelimit-reset'], 10);
+          const reset = parseInt(error.headers["x-ratelimit-reset"], 10);
           currentTokenIndex += 1;
           currentTokenIndex %= tokens.length;
           if (currentTokenIndex === 0) {
             spinner.warn(`Rate limit is reached. 😔 Will wait until ${new Date(reset * 1000).toLocaleTimeString()}.`);
-            spinner.start('Waiting 🕒');
+            spinner.start("Waiting 🕒");
             await delay((reset + 1) * 1000 - Date.now());
-            spinner.succeed('Waited! ✅');
+            spinner.succeed("Waited! ✅");
           } else {
             spinner.warn(`Rate limit is reached. Switching to token ${currentTokenIndex + 1} of ${tokens.length}.`);
-            gql = Graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
+            gql = graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
           }
           spinner.start(`Checking count for ${currentStar} stars.`);
           if (currentTokenIndex === 0) {
             await delay((reset + 1) * 1000 - Date.now());
           } else {
-            gql = Graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
+            gql = graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
           }
         }
       }
     }
     await writeFileAsync(`${language}_repos_per_star.csv`, resultToCSV(results));
-    spinner.succeed('Done!');
+    spinner.succeed("Done!");
   } catch (error) { ora().fail(error.message); }
 })().then(() => process.exit(0));

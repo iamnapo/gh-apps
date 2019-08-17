@@ -1,17 +1,17 @@
-require('dotenv').config();
-const path = require('path');
-const writeFileAsync = require('util').promisify(require('fs').writeFile);
-const Graphql = require('@octokit/graphql');
-const got = require('got');
-const ora = require('ora');
-const makeDir = require('make-dir');
-const delay = require('delay');
-const filenamify = require('filenamify');
+require("dotenv").config();
+const path = require("path");
+const writeFileAsync = require("util").promisify(require("fs").writeFile);
+const { graphql } = require("@octokit/graphql");
+const got = require("got");
+const ora = require("ora");
+const makeDir = require("make-dir");
+const delay = require("delay");
+const filenamify = require("filenamify");
 
 let tokens;
 try { tokens = JSON.parse(process.env.GITHUB_TOKENS); } catch { tokens = [process.env.GITHUB_TOKEN]; }
-const language = ['javascript', 'typescript'][parseInt(process.env.PROGRAMMING_LANGUAGE, 10) || 0];
-const ONLY_TOP_LEVEL = process.env.ONLY_TOP_LEVEL !== 'false';
+const language = ["javascript", "typescript"][parseInt(process.env.PROGRAMMING_LANGUAGE, 10) || 0];
+const ONLY_TOP_LEVEL = process.env.ONLY_TOP_LEVEL !== "false";
 
 const stars = [
   { from: 70, to: 71 },
@@ -80,10 +80,10 @@ const stars = [
     const writeFile = (repo, filePath, packageJSON) => writeFileAsync(path.join(__dirname, `${language}_packages`,
       `${filenamify(repo.stargazers.totalCount.toString())}📎${filenamify(repo.owner.login)}📎${filenamify(repo.name)}📎${filenamify(filePath)}`),
     JSON.stringify(packageJSON, null, 2));
-    const dontCareForTheseEntries = filePath => ['node_modules', 'vendor', 'example', 'test', 'doc', 'sample', 'demo']
-      .some(el => filePath.toLowerCase().includes(el));
+    const dontCareForTheseEntries = (filePath) => ["node_modules", "vendor", "example", "test", "doc", "sample", "demo"]
+      .some((el) => filePath.toLowerCase().includes(el));
     let currentTokenIndex = 0;
-    let gql = Graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
+    let gql = graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
     await makeDir(path.join(__dirname, `${language}_packages`));
     for (const range of stars) {
       ora().info(`stars ∈ [${range.from},${range.to}]`);
@@ -186,25 +186,25 @@ const stars = [
               entries.forEach((top) => {
                 if (!top.object.entries) {
                   const filePath = top.name.toLowerCase();
-                  if (filePath.endsWith('package.json')) listOfContents.push({ path: filePath, content: top.object.text });
+                  if (filePath.endsWith("package.json")) listOfContents.push({ path: filePath, content: top.object.text });
                 } else {
                   if (dontCareForTheseEntries(top.name)) return;
                   top.object.entries.forEach((deep1) => {
                     if (!deep1.object.entries) {
                       const filePath = path.join(top.name, deep1.name).toLowerCase();
-                      if (filePath.endsWith('package.json')) listOfContents.push({ path: filePath, content: deep1.object.text });
+                      if (filePath.endsWith("package.json")) listOfContents.push({ path: filePath, content: deep1.object.text });
                     } else {
                       if (dontCareForTheseEntries(deep1.name)) return;
                       deep1.object.entries.forEach((deep2) => {
                         if (!deep2.object.entries) {
                           const filePath = path.join(top.name, deep1.name, deep2.name).toLowerCase();
-                          if (filePath.endsWith('package.json')) listOfContents.push({ path: filePath, content: deep2.object.text });
+                          if (filePath.endsWith("package.json")) listOfContents.push({ path: filePath, content: deep2.object.text });
                         } else {
                           if (dontCareForTheseEntries(deep2.name)) return;
                           deep2.object.entries.forEach((deep3) => {
                             if (deep3.object.text) {
                               const filePath = path.join(top.name, deep1.name, deep2.name, deep3.name).toLowerCase();
-                              if (filePath.endsWith('package.json')) listOfContents.push({ path: filePath, content: deep3.object.text });
+                              if (filePath.endsWith("package.json")) listOfContents.push({ path: filePath, content: deep3.object.text });
                             }
                           });
                         }
@@ -213,7 +213,7 @@ const stars = [
                   });
                 }
               });
-              if (remaining === 0) throw Object({ status: 403, headers: { 'x-ratelimit-reset': resetAt } });
+              if (remaining === 0) throw Object({ status: 403, headers: { "x-ratelimit-reset": resetAt } });
             } else {
               const { repository: { object: { text: content } }, rateLimit: { remaining, resetAt } } = await gql(`
               query getContents($owner: String!, $name: String!, $expression: String!) {
@@ -229,15 +229,15 @@ const stars = [
                   resetAt
                 }
               }`, { owner: repo.owner.login, name: repo.name, expression: `${repo.defaultBranchRef.name}:package.json` });
-              listOfContents.push({ path: 'package.json', content });
-              if (remaining === 0) throw Object({ status: 403, headers: { 'x-ratelimit-reset': resetAt } });
+              listOfContents.push({ path: "package.json", content });
+              if (remaining === 0) throw Object({ status: 403, headers: { "x-ratelimit-reset": resetAt } });
             }
             for (const file of listOfContents) {
               const { path: filePath, content } = file;
               try {
                 const packageJSON = JSON.parse(content);
                 if (!packageJSON.name && !packageJSON.private) continue;
-                if (packageJSON.private || packageJSON.name.toLowerCase().includes('-cli')) {
+                if (packageJSON.private || packageJSON.name.toLowerCase().includes("-cli")) {
                   filesFound += 1;
                   await writeFile(repo, filePath, packageJSON);
                   continue;
@@ -252,17 +252,17 @@ const stars = [
           } catch (error) {
             if (error.status === 403 && initialI === i) {
               i -= 1;
-              const reset = parseInt(error.headers['x-ratelimit-reset'], 10);
+              const reset = parseInt(error.headers["x-ratelimit-reset"], 10);
               currentTokenIndex += 1;
               currentTokenIndex %= tokens.length;
               if (currentTokenIndex === 0) {
                 spinner.warn(`Rate limit is reached. 😔 Will wait until ${new Date(reset * 1000).toLocaleTimeString()}.`);
-                spinner.start('Waiting 🕒');
+                spinner.start("Waiting 🕒");
                 await delay((reset + 1) * 1000 - Date.now());
-                spinner.succeed('Waited! ✅');
+                spinner.succeed("Waited! ✅");
               } else {
                 spinner.warn(`Rate limit is reached. Switching to token ${currentTokenIndex + 1} of ${tokens.length}.`);
-                gql = Graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
+                gql = graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
               }
               spinner.start(`Checking page ${i + 1}|${10}`);
             }
@@ -273,6 +273,6 @@ const stars = [
       }
       ora().succeed(`Found ${filesFound} package.json files! 🎉`);
     }
-    ora().succeed('Done! ✅');
+    ora().succeed("Done! ✅");
   } catch (error) { ora().fail(error.message); }
 })().then(() => process.exit(0));

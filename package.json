@@ -26,8 +26,8 @@
     }
   },
   "dependencies": {
-    "@octokit/graphql": "^2.1.2",
-    "delay": "^4.2.0",
+    "@octokit/graphql": "^4.0.0",
+    "delay": "^4.3.0",
     "dotenv": "^8.0.0",
     "filenamify": "^4.1.0",
     "got": "^9.6.0",
@@ -35,14 +35,15 @@
     "ora": "^3.4.0"
   },
   "devDependencies": {
-    "babel-eslint": "^10.0.1",
-    "eslint": "^5.16.0",
-    "eslint-config-airbnb": "^17.1.0",
-    "eslint-config-iamnapo": "^1.0.4",
-    "eslint-plugin-import": "^2.17.3",
-    "eslint-plugin-jsx-a11y": "^6.2.1",
-    "eslint-plugin-react": "^7.13.0",
-    "husky": "^2.3.0"
+    "babel-eslint": "^10.0.2",
+    "eslint": "^6.1.0",
+    "eslint-config-airbnb": "^18.0.1",
+    "eslint-config-iamnapo": "^1.2.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.14.3",
+    "eslint-plugin-react-hooks": "^1.7.0",
+    "husky": "^3.0.4"
   },
   "engines": {
     "node": ">=10"
