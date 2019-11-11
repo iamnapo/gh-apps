@@ -1,51 +1,50 @@
 {
-  "name": "gh-apps",
-  "version": "0.1.0",
-  "description": "Code to extract package.json from popular JavaScript|TypeScript repositories that are not on npm",
-  "keywords": [],
-  "homepage": "https://github.com/iamnapo/gh-apps#readme",
-  "bugs": {
-    "url": "https://github.com/iamnapo/gh-apps/issues"
-  },
-  "repository": "github:iamnapo/gh-apps",
-  "license": "MIT",
-  "author": {
-    "name": "Napoleon-Christos Oikonomou",
-    "email": "Napoleonoikon@gmail.com",
-    "url": "https://iamnapo.me"
-  },
-  "main": "gh-apps.js",
-  "scripts": {
-    "count-repos": "node count-repos.js",
-    "start": "node gh-apps.js",
-    "test": "eslint ."
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm test"
-    }
-  },
-  "dependencies": {
-    "@octokit/graphql": "^4.0.0",
-    "delay": "^4.3.0",
-    "dotenv": "^8.0.0",
-    "filenamify": "^4.1.0",
-    "got": "^9.6.0",
-    "make-dir": "^3.0.0",
-    "ora": "^3.4.0"
-  },
-  "devDependencies": {
-    "babel-eslint": "^10.0.2",
-    "eslint": "^6.1.0",
-    "eslint-config-airbnb": "^18.0.1",
-    "eslint-config-iamnapo": "^1.2.0",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-react": "^7.14.3",
-    "eslint-plugin-react-hooks": "^1.7.0",
-    "husky": "^3.0.4"
-  },
-  "engines": {
-    "node": ">=10"
-  }
+	"name": "gh-apps",
+	"version": "0.1.0",
+	"description": "Code to extract package.json from popular JavaScript|TypeScript repositories that are not on npm",
+	"keywords": [],
+	"homepage": "https://github.com/iamnapo/gh-apps#readme",
+	"bugs": {
+		"url": "https://github.com/iamnapo/gh-apps/issues"
+	},
+	"repository": "github:iamnapo/gh-apps",
+	"license": "MIT",
+	"author": {
+		"name": "Napoleon-Christos Oikonomou",
+		"email": "Napoleonoikon@gmail.com",
+		"url": "https://iamnapo.me"
+	},
+	"main": "gh-apps.js",
+	"scripts": {
+		"count-repos": "node count-repos.js",
+		"start": "node gh-apps.js",
+		"test": "eslint ."
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "npm test"
+		}
+	},
+	"dependencies": {
+		"@octokit/graphql": "^4.3.1",
+		"delay": "^4.3.0",
+		"dotenv": "^8.2.0",
+		"filenamify": "^4.1.0",
+		"got": "^9.6.0",
+		"make-dir": "^3.0.0",
+		"ora": "^4.0.2"
+	},
+	"devDependencies": {
+		"eslint": "^6.6.0",
+		"eslint-config-airbnb": "^18.0.1",
+		"eslint-config-iamnapo": "^2.0.0",
+		"eslint-plugin-import": "^2.18.2",
+		"eslint-plugin-jsx-a11y": "^6.2.3",
+		"eslint-plugin-react": "^7.16.0",
+		"eslint-plugin-react-hooks": "^2.2.0",
+		"husky": "^3.0.9"
+	},
+	"engines": {
+		"node": ">=10"
+	}
 }

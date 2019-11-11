@@ -6,17 +6,17 @@
 
 ## Usage
 
-* Create a `.env` file containing the variables:
+- Create a `.env` file containing the variables:
 
-  * `GITHUB_TOKEN`<sup>1</sup>: your github API token.
-  * `PROGRAMMING_LANGUAGE`: `'0'` for JavaScript, `'1'` for TypeScript. Defaults to `'0'`.
-  * `ONLY_TOP_LEVEL`: `'false'` to fully traverse the git tree for `package.json` files. Defaults to `'true'`.
-  * `STAR_COUNT`<sup>2</sup>: `'1000'` limit used for `npm run count-repos`. Defaults to `'0'`.
-  <br/>
+  - `GITHUB_TOKEN`<sup>1</sup>: your github API token.
+  - `PROGRAMMING_LANGUAGE`: `'0'` for JavaScript, `'1'` for TypeScript. Defaults to `'0'`.
+  - `ONLY_TOP_LEVEL`: `'false'` to fully traverse the git tree for `package.json` files. Defaults to `'true'`.
+  - `STAR_COUNT`<sup>2</sup>: `'1000'` limit used for `npm run count-repos`. Defaults to `'0'`.
+    <br/>
 
   > <sup>1</sup> If the script reaches [GitHub's rate limit](https://developer.github.com/v3/#rate-limiting), it will pause and resume when the limit resets. You can also use `GITHUB_TOKENS` to provide an array of tokens and the script will circle through them if the limit is reached.
 
-* Install dependencies & run the script
+- Install dependencies & run the script
 
   ```bash
   npm i
@@ -27,12 +27,12 @@
 
 ## Dataset
 
-* [dataset_top_level_only.zip](./dataset_top_level_only.zip) contains __12341__ JavaScript and __1543__ TypeScript package.json files from repos with `stars > 70`.
-* [dataset_tree_traversal.zip](./dataset_tree_traversal.zip) contains __37702__ JavaScript and __5188__ TypeScript package.json files from repos with `stars > 70`.
+- [dataset_top_level_only.zip](./dataset_top_level_only.zip) contains **12341** JavaScript and **1543** TypeScript package.json files from repos with `stars > 70`.
+- [dataset_tree_traversal.zip](./dataset_tree_traversal.zip) contains **37702** JavaScript and **5188** TypeScript package.json files from repos with `stars > 70`.
 
 > Filename format is: `<stars>📎<owner>📎<repo>📎[<path>]package.json`, where reserved characters (e.g. `/`) are converted to `!`.
 
-* [dataset_count_repos.zip](./dataset_count_repos.zip) contains frequency of repos with `stars ∈ [0, 1000]`.
+- [dataset_count_repos.zip](./dataset_count_repos.zip) contains frequency of repos with `stars ∈ [0, 1000]`.
 
 ## License
 
