@@ -250,7 +250,7 @@ const stars = [
 									await writeFile(repo, filePath, packageJSON);
 									continue;
 								}
-								const { body } = await got(`https://api.npms.io/v2/search/suggestions?q=${packageJSON.name}`, { json: true });
+								const body = await got(`https://api.npms.io/v2/search/suggestions?q=${packageJSON.name}`).json();
 								if (body.some(({ package: npmPkg }) => npmPkg.links.repository
 									&& npmPkg.links.repository.toLowerCase() === repo.url.toLowerCase())) continue;
 								filesFound += 1;
