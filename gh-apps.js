@@ -78,8 +78,11 @@ const stars = [
 (async () => {
 	try {
 		const writeFile = ({ stargazers, owner, name }, filePath, packageJSON) => writeFileAsync(
-			path.join(__dirname, `${language}_packages`,
-				`${filenamify(stargazers.totalCount.toString())}📎${filenamify(owner.login)}📎${filenamify(name)}📎${filenamify(filePath)}`),
+			path.join(
+				__dirname,
+				`${language}_packages`,
+				`${filenamify(stargazers.totalCount.toString())}📎${filenamify(owner.login)}📎${filenamify(name)}📎${filenamify(filePath)}`,
+			),
 			JSON.stringify(packageJSON, null, 2),
 		);
 		const dontCareForTheseEntries = (filePath) => ["node_modules", "vendor", "example", "test", "doc", "sample", "demo"]
@@ -98,7 +101,12 @@ const stars = [
 					spinner.stop();
 					break;
 				}
-				const { search: { edges: repos, pageInfo: { endCursor: lastCursor, hasNextPage } } } = await gql(`
+				const {
+					search: {
+						edges: repos,
+						pageInfo: { endCursor: lastCursor, hasNextPage },
+					},
+				} = await gql(`
 					query getRepos($queryString: String!, $after: String) {
 						search(query: $queryString, type: REPOSITORY, first: 100, after: $after) {
 							edges {
@@ -131,7 +139,12 @@ const stars = [
 					try {
 						const listOfContents = [];
 						if (!ONLY_TOP_LEVEL) {
-							const { repository: { object: { entries } }, rateLimit: { remaining, resetAt } } = await gql(`
+							const {
+								repository: {
+									object: { entries },
+								},
+								rateLimit: { remaining, resetAt },
+							} = await gql(`
 							query getTree($owner: String!, $name: String!, $expression: String!) {
 								repository(owner: $owner, name: $name) {
 									object(expression: $expression) {
@@ -223,7 +236,12 @@ const stars = [
 							});
 							if (remaining === 0) throw Object({ status: 403, headers: { "x-ratelimit-reset": resetAt } });
 						} else {
-							const { repository: { object: { text: content } }, rateLimit: { remaining, resetAt } } = await gql(`
+							const {
+								repository: {
+									object: { text: content },
+								},
+								rateLimit: { remaining, resetAt },
+							} = await gql(`
 							query getContents($owner: String!, $name: String!, $expression: String!) {
 								repository(owner: $owner, name: $name) {
 									object(expression: $expression) {

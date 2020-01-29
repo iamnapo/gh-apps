@@ -32,7 +32,7 @@ function resultToCSV(data = null, delim = ", ", linedelim = "\n") {
 		let currentStar = 0;
 		const results = [];
 		const spinner = ora().start(`Checking count for ${currentStar} stars.`);
-		for (const _ of new Array(3 * starLimit).keys()) { // eslint-disable-line no-unused-vars
+		for (let _ = 0; _ < 3 * starLimit; _ += 1) {
 			try {
 				const { search: { repositoryCount: count } } = await gql(`query getRepoCount($queryString: String!) {
           search(query: $queryString, type: REPOSITORY, first: 1) {
