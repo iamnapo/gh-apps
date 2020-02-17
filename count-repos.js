@@ -69,4 +69,4 @@ function resultToCSV(data = null, delim = ", ", linedelim = "\n") {
 		await writeFileAsync(`${language}_repos_per_star.csv`, resultToCSV(results));
 		spinner.succeed("Done!");
 	} catch (error) { ora().fail(error.message); }
-})().then(() => process.exit(0));
+})().then(() => process.exit(0)); // eslint-disable-line unicorn/no-process-exit

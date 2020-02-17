@@ -234,7 +234,7 @@ const stars = [
 									});
 								}
 							});
-							if (remaining === 0) throw Object({ status: 403, headers: { "x-ratelimit-reset": resetAt } });
+							if (remaining === 0) throw { status: 403, headers: { "x-ratelimit-reset": resetAt } }; // eslint-disable-line no-throw-literal
 						} else {
 							const {
 								repository: {
@@ -256,7 +256,7 @@ const stars = [
 								}
 							}`, { owner: repo.owner.login, name: repo.name, expression: `${repo.defaultBranchRef.name}:package.json` });
 							listOfContents.push({ path: "package.json", content });
-							if (remaining === 0) throw Object({ status: 403, headers: { "x-ratelimit-reset": resetAt } });
+							if (remaining === 0) throw { status: 403, headers: { "x-ratelimit-reset": resetAt } }; // eslint-disable-line no-throw-literal
 						}
 						for (const file of listOfContents) {
 							const { path: filePath, content } = file;
@@ -301,4 +301,4 @@ const stars = [
 		}
 		ora().succeed("Done! ✅");
 	} catch (error) { ora().fail(error.message); }
-})().then(() => process.exit(0));
+})().then(() => process.exit(0)); // eslint-disable-line unicorn/no-process-exit
