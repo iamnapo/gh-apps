@@ -1,8 +1,8 @@
 # gh-apps
 
-> Code to extract package.json from popular JavaScript|TypeScript repositories that are not on npm
+> Code to extract package.json from popular JavaScript|TypeScript repositories that are not on npm.
 
-[![travis](https://img.shields.io/travis/com/iamnapo/gh-apps.svg?style=for-the-badge&logo=travis&label=)](https://travis-ci.com/iamnapo/gh-apps) [![license](https://img.shields.io/github/license/iamnapo/gh-apps.svg?style=for-the-badge)](./LICENSE)
+[![build](https://img.shields.io/github/workflow/status/iamnapo/gh-apps/Install%20%26%20test?style=for-the-badge&logo=github&label=)](https://github.com/iamnapo/gh-apps/actions) [![license](https://img.shields.io/github/license/iamnapo/gh-apps.svg?style=for-the-badge)](./LICENSE)
 
 ## Usage
 
