@@ -10,7 +10,7 @@ const filenamify = require("filenamify");
 
 let tokens;
 try { tokens = JSON.parse(process.env.GITHUB_TOKENS); } catch { tokens = [process.env.GITHUB_TOKEN]; }
-const language = ["javascript", "typescript"][parseInt(process.env.PROGRAMMING_LANGUAGE, 10) || 0];
+const language = ["javascript", "typescript"][Number.parseInt(process.env.PROGRAMMING_LANGUAGE, 10) || 0];
 const ONLY_TOP_LEVEL = process.env.ONLY_TOP_LEVEL !== "false";
 
 const stars = [
@@ -278,7 +278,7 @@ const stars = [
 					} catch (error) {
 						if (error.status === 403 && initialI === i) {
 							i -= 1;
-							const reset = parseInt(error.headers["x-ratelimit-reset"], 10);
+							const reset = Number.parseInt(error.headers["x-ratelimit-reset"], 10);
 							currentTokenIndex += 1;
 							currentTokenIndex %= tokens.length;
 							if (currentTokenIndex === 0) {

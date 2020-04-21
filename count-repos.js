@@ -6,8 +6,8 @@ const delay = require("delay");
 
 let tokens;
 try { tokens = JSON.parse(process.env.GITHUB_TOKENS); } catch { tokens = [process.env.GITHUB_TOKEN]; }
-const language = ["javascript", "typescript"][parseInt(process.env.PROGRAMMING_LANGUAGE, 10) || 0];
-const starLimit = parseInt(process.env.STAR_COUNT, 10) || 1000;
+const language = ["javascript", "typescript"][Number.parseInt(process.env.PROGRAMMING_LANGUAGE, 10) || 0];
+const starLimit = Number.parseInt(process.env.STAR_COUNT, 10) || 1000;
 
 function resultToCSV(data = null, delim = ", ", linedelim = "\n") {
 	const keys = Object.keys(data[0]);
@@ -45,7 +45,7 @@ function resultToCSV(data = null, delim = ", ", linedelim = "\n") {
 				spinner.start(`Checking count for ${currentStar} stars.`);
 			} catch (error) {
 				if (error.status === 403) {
-					const reset = parseInt(error.headers["x-ratelimit-reset"], 10);
+					const reset = Number.parseInt(error.headers["x-ratelimit-reset"], 10);
 					currentTokenIndex += 1;
 					currentTokenIndex %= tokens.length;
 					if (currentTokenIndex === 0) {
