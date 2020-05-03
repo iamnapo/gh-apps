@@ -1,5 +1,5 @@
 require("dotenv").config();
-const writeFileAsync = require("util").promisify(require("fs").writeFile);
+const { writeFile } = require("fs").promises;
 const { graphql } = require("@octokit/graphql");
 const ora = require("ora");
 const delay = require("delay");
@@ -66,7 +66,7 @@ function resultToCSV(data = null, delim = ", ", linedelim = "\n") {
 				}
 			}
 		}
-		await writeFileAsync(`${language}_repos_per_star.csv`, resultToCSV(results));
+		await writeFile(`${language}_repos_per_star.csv`, resultToCSV(results));
 		spinner.succeed("Done!");
 	} catch (error) { ora().fail(error.message); }
 })().then(() => process.exit(0)); // eslint-disable-line unicorn/no-process-exit
