@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { writeFile } = require("fs").promises;
+
 const { graphql } = require("@octokit/graphql");
 const ora = require("ora");
 const delay = require("delay");
