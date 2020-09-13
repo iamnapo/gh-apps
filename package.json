@@ -26,20 +26,20 @@
 		}
 	},
 	"dependencies": {
-		"@octokit/graphql": "^4.5.2",
+		"@octokit/graphql": "^4.5.6",
 		"delay": "^4.4.0",
 		"dotenv": "^8.2.0",
 		"filenamify": "^4.1.0",
-		"got": "^11.5.1",
+		"got": "^11.6.2",
 		"make-dir": "^3.1.0",
-		"ora": "^4.0.5"
+		"ora": "^5.1.0"
 	},
 	"devDependencies": {
-		"eslint": "^7.5.0",
-		"eslint-config-iamnapo": "^6.0.3",
+		"eslint": "^7.9.0",
+		"eslint-config-iamnapo": "^7.0.1",
 		"eslint-plugin-import": "^2.22.0",
 		"eslint-plugin-unicorn": "^21.0.0",
-		"husky": "^4.2.5"
+		"husky": "^4.3.0"
 	},
 	"engines": {
 		"node": ">=12"
