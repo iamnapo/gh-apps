@@ -14,32 +14,34 @@
 		"email": "Napoleonoikon@gmail.com",
 		"url": "https://iamnapo.me"
 	},
-	"main": "gh-apps.js",
+	"type": "module",
+	"exports": "./gh-apps.js",
 	"scripts": {
 		"count-repos": "node count-repos.js",
 		"start": "node gh-apps.js",
 		"test": "eslint . --cache"
 	},
-	"husky": {
-		"hooks": {
-			"pre-commit": "npm test"
-		}
+	"eslintConfig": {
+		"extends": "iamnapo",
+		"rules": {
+			"no-continue": "off",
+			"no-loop-func": "off"
+		},
+		"ignorePatterns": "*_packages"
 	},
 	"dependencies": {
-		"@octokit/graphql": "^4.5.6",
-		"delay": "^4.4.0",
+		"@octokit/graphql": "^4.6.0",
+		"delay": "^5.0.0",
 		"dotenv": "^8.2.0",
 		"filenamify": "^4.2.0",
-		"got": "^11.7.0",
-		"make-dir": "^3.1.0",
-		"ora": "^5.1.0"
+		"got": "^11.8.1",
+		"ora": "^5.3.0"
 	},
 	"devDependencies": {
-		"eslint": "^7.10.0",
-		"eslint-config-iamnapo": "^9.0.0",
+		"eslint": "^7.20.0",
+		"eslint-config-iamnapo": "^12.0.0",
 		"eslint-plugin-import": "^2.22.1",
-		"eslint-plugin-unicorn": "^22.0.0",
-		"husky": "^4.3.0"
+		"eslint-plugin-unicorn": "^28.0.1"
 	},
 	"engines": {
 		"node": ">=12"

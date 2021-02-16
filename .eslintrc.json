@@ -1,7 +1,0 @@
-{
-	"extends": "iamnapo",
-	"rules": {
-		"no-loop-func": "off",
-		"no-continue": "off"
-	}
-}

@@ -1,9 +1,10 @@
-require("dotenv").config();
-const { writeFile } = require("fs").promises;
+import "dotenv/config.js";
 
-const { graphql } = require("@octokit/graphql");
-const ora = require("ora");
-const delay = require("delay");
+import { writeFile } from "fs/promises";
+
+import { graphql } from "@octokit/graphql";
+import ora from "ora";
+import delay from "delay";
 
 let tokens;
 try { tokens = JSON.parse(process.env.GITHUB_TOKENS); } catch { tokens = [process.env.GITHUB_TOKEN]; }
@@ -14,15 +15,15 @@ function resultToCSV(data = null, delim = ", ", linedelim = "\n") {
 	const keys = Object.keys(data[0]);
 	let result = keys.join(delim) + linedelim;
 
-	data.forEach((item) => {
+	for (const item of data) {
 		let ctr = 0;
-		keys.forEach((key) => {
+		for (const key of keys) {
 			if (ctr > 0) result += delim;
 			result += item[key];
 			ctr += 1;
-		});
+		}
 		result += linedelim;
-	});
+	}
 	return result;
 }
 

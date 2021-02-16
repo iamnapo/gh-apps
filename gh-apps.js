@@ -1,13 +1,15 @@
-require("dotenv").config();
-const path = require("path");
-const { writeFile: writeFileAsync } = require("fs").promises;
+import "dotenv/config.js";
+import path from "path";
+import { writeFile as writeFileAsync, mkdir } from "fs/promises";
+import { fileURLToPath } from "url";
 
-const { graphql } = require("@octokit/graphql");
-const got = require("got");
-const ora = require("ora");
-const makeDir = require("make-dir");
-const delay = require("delay");
-const filenamify = require("filenamify");
+import { graphql } from "@octokit/graphql";
+import got from "got";
+import ora from "ora";
+import delay from "delay";
+import filenamify from "filenamify";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let tokens;
 try { tokens = JSON.parse(process.env.GITHUB_TOKENS); } catch { tokens = [process.env.GITHUB_TOKEN]; }
@@ -73,7 +75,7 @@ const stars = [
 	{ from: 2000, to: 2999 },
 	{ from: 3000, to: 3999 },
 	{ from: 4000, to: 4999 },
-	{ from: 5000, to: 500000 },
+	{ from: 5000, to: 500_000 },
 ];
 
 (async () => {
@@ -90,7 +92,7 @@ const stars = [
 			.some((el) => filePath.toLowerCase().includes(el));
 		let currentTokenIndex = 0;
 		let gql = graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
-		await makeDir(path.join(__dirname, `${language}_packages`));
+		await mkdir(path.join(__dirname, `${language}_packages`), { recursive: true });
 		for (const range of stars) {
 			ora().info(`stars ∈ [${range.from},${range.to}]`);
 			let filesFound = 0;
@@ -139,13 +141,25 @@ const stars = [
 					const initialI = i;
 					try {
 						const listOfContents = [];
-						if (!ONLY_TOP_LEVEL) {
-							const {
-								repository: {
-									object: { entries },
-								},
-								rateLimit: { remaining, resetAt },
-							} = await gql(`
+						if (ONLY_TOP_LEVEL) {
+							const { repository: { object: { text: content } }, rateLimit: { remaining, resetAt } } = await gql(`
+							query getContents($owner: String!, $name: String!, $expression: String!) {
+								repository(owner: $owner, name: $name) {
+									object(expression: $expression) {
+										... on Blob {
+											text
+										}
+									}
+								}
+								rateLimit {
+									remaining
+									resetAt
+								}
+							}`, { owner: repo.owner.login, name: repo.name, expression: `${repo.defaultBranchRef.name}:package.json` });
+							listOfContents.push({ path: "package.json", content });
+							if (remaining === 0) throw { status: 403, headers: { "x-ratelimit-reset": resetAt } }; // eslint-disable-line no-throw-literal
+						} else {
+							const { repository: { object: { entries } }, rateLimit: { remaining, resetAt } } = await gql(`
 							query getTree($owner: String!, $name: String!, $expression: String!) {
 								repository(owner: $owner, name: $name) {
 									object(expression: $expression) {
@@ -199,64 +213,42 @@ const stars = [
 									}
 								}
 							}`, { owner: repo.owner.login, name: repo.name, expression: `${repo.defaultBranchRef.name}:` });
-							entries.forEach((top) => {
-								if (!top.object.entries) {
-									const filePath = top.name.toLowerCase();
-									if (filePath.endsWith("package.json")) listOfContents.push({ path: filePath, content: top.object.text });
-								} else {
-									if (dontCareForTheseEntries(top.name)) return;
-									top.object.entries.forEach((deep1) => {
-										if (!deep1.object.entries) {
-											const filePath = path.join(top.name, deep1.name).toLowerCase();
-											if (filePath.endsWith("package.json")) {
-												listOfContents.push({ path: filePath, content: deep1.object.text });
-											}
-										} else {
-											if (dontCareForTheseEntries(deep1.name)) return;
-											deep1.object.entries.forEach((deep2) => {
-												if (!deep2.object.entries) {
-													const filePath = path.join(top.name, deep1.name, deep2.name).toLowerCase();
-													if (filePath.endsWith("package.json")) {
-														listOfContents.push({ path: filePath, content: deep2.object.text });
-													}
-												} else {
-													if (dontCareForTheseEntries(deep2.name)) return;
-													deep2.object.entries.forEach((deep3) => {
+							for (const top of entries) {
+								if (top.object.entries) {
+									if (dontCareForTheseEntries(top.name)) continue;
+									for (const deep1 of top.object.entries) {
+										if (deep1.object.entries) {
+											if (dontCareForTheseEntries(deep1.name)) continue;
+											for (const deep2 of deep1.object.entries) {
+												if (deep2.object.entries) {
+													if (dontCareForTheseEntries(deep2.name)) continue;
+													for (const deep3 of deep2.object.entries) {
 														if (deep3.object.text) {
 															const filePath = path.join(top.name, deep1.name, deep2.name, deep3.name).toLowerCase();
 															if (filePath.endsWith("package.json")) {
 																listOfContents.push({ path: filePath, content: deep3.object.text });
 															}
 														}
-													});
+													}
+												} else {
+													const filePath = path.join(top.name, deep1.name, deep2.name).toLowerCase();
+													if (filePath.endsWith("package.json")) {
+														listOfContents.push({ path: filePath, content: deep2.object.text });
+													}
 												}
-											});
-										}
-									});
-								}
-							});
-							if (remaining === 0) throw { status: 403, headers: { "x-ratelimit-reset": resetAt } }; // eslint-disable-line no-throw-literal
-						} else {
-							const {
-								repository: {
-									object: { text: content },
-								},
-								rateLimit: { remaining, resetAt },
-							} = await gql(`
-							query getContents($owner: String!, $name: String!, $expression: String!) {
-								repository(owner: $owner, name: $name) {
-									object(expression: $expression) {
-										... on Blob {
-											text
+											}
+										} else {
+											const filePath = path.join(top.name, deep1.name).toLowerCase();
+											if (filePath.endsWith("package.json")) {
+												listOfContents.push({ path: filePath, content: deep1.object.text });
+											}
 										}
 									}
+								} else {
+									const filePath = top.name.toLowerCase();
+									if (filePath.endsWith("package.json")) listOfContents.push({ path: filePath, content: top.object.text });
 								}
-								rateLimit {
-									remaining
-									resetAt
-								}
-							}`, { owner: repo.owner.login, name: repo.name, expression: `${repo.defaultBranchRef.name}:package.json` });
-							listOfContents.push({ path: "package.json", content });
+							}
 							if (remaining === 0) throw { status: 403, headers: { "x-ratelimit-reset": resetAt } }; // eslint-disable-line no-throw-literal
 						}
 						for (const file of listOfContents) {

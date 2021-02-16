@@ -2,7 +2,7 @@
 
 > Code to extract package.json from popular JavaScript|TypeScript repositories that are not on npm.
 
-[![build](https://img.shields.io/github/workflow/status/iamnapo/gh-apps/ci?style=for-the-badge&logo=github&label=)](https://github.com/iamnapo/gh-apps/actions) [![license](https://img.shields.io/github/license/iamnapo/gh-apps.svg?style=for-the-badge)](./LICENSE)
+[![build](https://img.shields.io/github/workflow/status/iamnapo/gh-apps/ci?style=for-the-badge&logo=github&label=)](https://github.com/iamnapo/gh-apps/actions)
 
 ## Usage
 
@@ -18,7 +18,7 @@
 
 - Install dependencies & run the script
 
-  ```bash
+  ```console
   npm i
   npm start
   ```
