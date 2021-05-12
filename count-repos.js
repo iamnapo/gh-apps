@@ -1,6 +1,6 @@
-import "dotenv/config.js";
+import "dotenv/config";
 
-import { writeFile } from "fs/promises";
+import { writeFile } from "node:fs/promises";
 
 import { graphql } from "@octokit/graphql";
 import ora from "ora";
