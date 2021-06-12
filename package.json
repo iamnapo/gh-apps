@@ -24,24 +24,23 @@
 	"eslintConfig": {
 		"extends": "iamnapo",
 		"rules": {
-			"no-continue": "off",
 			"no-loop-func": "off"
 		},
 		"ignorePatterns": "*_packages"
 	},
 	"dependencies": {
-		"@octokit/graphql": "^4.6.1",
+		"@octokit/graphql": "^4.6.4",
 		"delay": "^5.0.0",
-		"dotenv": "^9.0.2",
+		"dotenv": "^10.0.0",
 		"filenamify": "^4.3.0",
 		"got": "^11.8.2",
-		"ora": "^5.4.0"
+		"ora": "^5.4.1"
 	},
 	"devDependencies": {
-		"eslint": "^7.26.0",
+		"eslint": "^7.28.0",
 		"eslint-config-iamnapo": "^15.0.0",
-		"eslint-plugin-import": "^2.23.1",
-		"eslint-plugin-unicorn": "^32.0.1"
+		"eslint-plugin-import": "^2.23.4",
+		"eslint-plugin-unicorn": "^33.0.1"
 	},
 	"engines": {
 		"node": ">=12"

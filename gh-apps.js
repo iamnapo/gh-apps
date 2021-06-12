@@ -89,7 +89,7 @@ const stars = [
 			),
 			JSON.stringify(packageJSON, null, 2),
 		);
-		const dontCareForTheseEntries = (filePath) => ["node_modules", "vendor", "example", "test", "doc", "sample", "demo"]
+		const careForTheseEntries = (filePath) => !["node_modules", "vendor", "example", "test", "doc", "sample", "demo"]
 			.some((el) => filePath.toLowerCase().includes(el));
 		let currentTokenIndex = 0;
 		let gql = graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
@@ -216,32 +216,35 @@ const stars = [
 							}`, { owner: repo.owner.login, name: repo.name, expression: `${repo.defaultBranchRef.name}:` });
 							for (const top of entries) {
 								if (top.object.entries) {
-									if (dontCareForTheseEntries(top.name)) continue;
-									for (const deep1 of top.object.entries) {
-										if (deep1.object.entries) {
-											if (dontCareForTheseEntries(deep1.name)) continue;
-											for (const deep2 of deep1.object.entries) {
-												if (deep2.object.entries) {
-													if (dontCareForTheseEntries(deep2.name)) continue;
-													for (const deep3 of deep2.object.entries) {
-														if (deep3.object.text) {
-															const filePath = path.join(top.name, deep1.name, deep2.name, deep3.name).toLowerCase();
+									if (careForTheseEntries(top.name)) {
+										for (const deep1 of top.object.entries) {
+											if (deep1.object.entries) {
+												if (careForTheseEntries(deep1.name)) {
+													for (const deep2 of deep1.object.entries) {
+														if (deep2.object.entries) {
+															if (careForTheseEntries(deep2.name)) {
+																for (const deep3 of deep2.object.entries) {
+																	if (deep3.object.text) {
+																		const filePath = path.join(top.name, deep1.name, deep2.name, deep3.name).toLowerCase();
+																		if (filePath.endsWith("package.json")) {
+																			listOfContents.push({ path: filePath, content: deep3.object.text });
+																		}
+																	}
+																}
+															}
+														} else {
+															const filePath = path.join(top.name, deep1.name, deep2.name).toLowerCase();
 															if (filePath.endsWith("package.json")) {
-																listOfContents.push({ path: filePath, content: deep3.object.text });
+																listOfContents.push({ path: filePath, content: deep2.object.text });
 															}
 														}
 													}
-												} else {
-													const filePath = path.join(top.name, deep1.name, deep2.name).toLowerCase();
-													if (filePath.endsWith("package.json")) {
-														listOfContents.push({ path: filePath, content: deep2.object.text });
-													}
 												}
-											}
-										} else {
-											const filePath = path.join(top.name, deep1.name).toLowerCase();
-											if (filePath.endsWith("package.json")) {
-												listOfContents.push({ path: filePath, content: deep1.object.text });
+											} else {
+												const filePath = path.join(top.name, deep1.name).toLowerCase();
+												if (filePath.endsWith("package.json")) {
+													listOfContents.push({ path: filePath, content: deep1.object.text });
+												}
 											}
 										}
 									}
@@ -256,17 +259,18 @@ const stars = [
 							const { path: filePath, content } = file;
 							try {
 								const packageJSON = JSON.parse(content);
-								if (!packageJSON.name && !packageJSON.private) continue;
-								if (packageJSON.private || packageJSON.name.toLowerCase().includes("-cli")) {
-									filesFound += 1;
-									await writeFile(repo, filePath, packageJSON);
-									continue;
+								if (packageJSON.name || packageJSON.private) {
+									if (packageJSON.private || packageJSON.name.toLowerCase().includes("-cli")) {
+										filesFound += 1;
+										await writeFile(repo, filePath, packageJSON);
+									} else {
+										const body = await got(`https://api.npms.io/v2/search/suggestions?q=${packageJSON.name}`).json();
+										if (body.every(({ package: npmPkg }) => npmPkg.links.repository?.toLowerCase() !== repo.url.toLowerCase())) {
+											filesFound += 1;
+											await writeFile(repo, filePath, packageJSON);
+										}
+									}
 								}
-								const body = await got(`https://api.npms.io/v2/search/suggestions?q=${packageJSON.name}`).json();
-								if (body.some(({ package: npmPkg }) => npmPkg.links.repository
-									&& npmPkg.links.repository.toLowerCase() === repo.url.toLowerCase())) continue;
-								filesFound += 1;
-								await writeFile(repo, filePath, packageJSON);
 							} catch { /** empty */ }
 						}
 					} catch (error) {
