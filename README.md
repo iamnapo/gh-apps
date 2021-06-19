@@ -2,7 +2,7 @@
 
 > Code to extract package.json from popular JavaScript|TypeScript repositories that are not on npm.
 
-[![build](https://img.shields.io/github/workflow/status/iamnapo/gh-apps/ci?style=for-the-badge&logo=github&label=)](https://github.com/iamnapo/gh-apps/actions)
+[![build](https://badges.iamnapo.me/ci/iamnapo/gh-apps)](https://github.com/iamnapo/gh-apps/actions)
 
 ## Usage
 
