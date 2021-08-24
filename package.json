@@ -32,15 +32,15 @@
 		"@octokit/graphql": "^4.6.4",
 		"delay": "^5.0.0",
 		"dotenv": "^10.0.0",
-		"filenamify": "^4.3.0",
+		"filenamify": "^5.0.0",
 		"got": "^11.8.2",
-		"ora": "^5.4.1"
+		"ora": "^6.0.0"
 	},
 	"devDependencies": {
-		"eslint": "^7.29.0",
-		"eslint-config-iamnapo": "^15.0.0",
-		"eslint-plugin-import": "^2.23.4",
-		"eslint-plugin-unicorn": "^33.0.1"
+		"eslint": "^7.32.0",
+		"eslint-config-iamnapo": "^16.1.0",
+		"eslint-plugin-import": "^2.24.1",
+		"eslint-plugin-unicorn": "^35.0.0"
 	},
 	"engines": {
 		"node": ">=12"
