@@ -29,18 +29,16 @@
 		"ignorePatterns": "*_packages"
 	},
 	"dependencies": {
-		"@octokit/graphql": "^4.6.4",
+		"@octokit/graphql": "^4.8.0",
 		"delay": "^5.0.0",
 		"dotenv": "^10.0.0",
-		"filenamify": "^5.0.0",
+		"filenamify": "^5.0.1",
 		"got": "^11.8.2",
-		"ora": "^6.0.0"
+		"ora": "^6.0.1"
 	},
 	"devDependencies": {
 		"eslint": "^7.32.0",
-		"eslint-config-iamnapo": "^16.1.0",
-		"eslint-plugin-import": "^2.24.1",
-		"eslint-plugin-unicorn": "^35.0.0"
+		"eslint-config-iamnapo": "^18.0.0"
 	},
 	"engines": {
 		"node": ">=12"

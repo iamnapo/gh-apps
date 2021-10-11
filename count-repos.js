@@ -22,8 +22,10 @@ function resultToCSV(data = null, delim = ", ", linedelim = "\n") {
 			result += item[key];
 			ctr += 1;
 		}
+
 		result += linedelim;
 	}
+
 	return result;
 }
 
@@ -59,6 +61,7 @@ function resultToCSV(data = null, delim = ", ", linedelim = "\n") {
 						spinner.warn(`Rate limit is reached. Switching to token ${currentTokenIndex + 1} of ${tokens.length}.`);
 						gql = graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
 					}
+
 					spinner.start(`Checking count for ${currentStar} stars.`);
 					if (currentTokenIndex === 0) {
 						await delay((reset + 1) * 1000 - Date.now());
@@ -68,6 +71,7 @@ function resultToCSV(data = null, delim = ", ", linedelim = "\n") {
 				}
 			}
 		}
+
 		await writeFile(`${language}_repos_per_star.csv`, resultToCSV(results));
 		spinner.succeed("Done!");
 	} catch (error) { ora().fail(error.message); }

@@ -105,6 +105,7 @@ const stars = [
 					spinner.stop();
 					break;
 				}
+
 				const {
 					search: {
 						edges: repos,
@@ -253,8 +254,10 @@ const stars = [
 									if (filePath.endsWith("package.json")) listOfContents.push({ path: filePath, content: top.object.text });
 								}
 							}
+
 							if (remaining === 0) throw { status: 403, headers: { "x-ratelimit-reset": resetAt } }; // eslint-disable-line no-throw-literal
 						}
+
 						for (const file of listOfContents) {
 							const { path: filePath, content } = file;
 							try {
@@ -288,6 +291,7 @@ const stars = [
 								spinner.warn(`Rate limit is reached. Switching to token ${currentTokenIndex + 1} of ${tokens.length}.`);
 								gql = graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
 							}
+
 							spinner.start(`Checking page ${i + 1}|${10}`);
 						}
 					}
@@ -295,8 +299,10 @@ const stars = [
 				await Promise.all(reposPromise);
 				spinner.stop();
 			}
+
 			ora().succeed(`Found ${filesFound} package.json files! 🎉`);
 		}
+
 		ora().succeed("Done! ✅");
 	} catch (error) { ora().fail(error.message); }
 })().then(() => process.exit(0)); // eslint-disable-line unicorn/no-process-exit
