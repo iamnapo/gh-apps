@@ -24,21 +24,22 @@
 	"eslintConfig": {
 		"extends": "iamnapo",
 		"rules": {
-			"no-loop-func": "off"
+			"no-loop-func": "off",
+			"import/no-unresolved": "off"
 		},
 		"ignorePatterns": "*_packages"
 	},
 	"dependencies": {
 		"@octokit/graphql": "^4.8.0",
 		"delay": "^5.0.0",
-		"dotenv": "^10.0.0",
-		"filenamify": "^5.0.2",
-		"got": "^11.8.2",
-		"ora": "^6.0.1"
+		"dotenv": "^16.0.0",
+		"filenamify": "^5.1.0",
+		"got": "^12.0.3",
+		"ora": "^6.1.0"
 	},
 	"devDependencies": {
-		"eslint": "^8.2.0",
-		"eslint-config-iamnapo": "^19.0.0"
+		"eslint": "^8.12.0",
+		"eslint-config-iamnapo": "^23.0.0"
 	},
 	"engines": {
 		"node": ">=12"
