@@ -3,11 +3,11 @@ import "dotenv/config";
 import path from "node:path";
 import { writeFile as writeFileAsync, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { setTimeout } from "node:timers/promises";
 
 import { graphql } from "@octokit/graphql";
 import got from "got";
 import ora from "ora";
-import delay from "delay";
 import filenamify from "filenamify";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -266,7 +266,9 @@ try {
 									filesFound += 1;
 									await writeFile(repo, filePath, packageJSON);
 								} else {
-									const body = await got(`https://api.npms.io/v2/search/suggestions?q=${packageJSON.name}`).json();
+									const body = await got("https://api.npms.io/v2/search/suggestions", {
+										searchParams: { q: packageJSON.name },
+									}).json();
 									if (body.every(({ package: npmPkg }) => npmPkg.links.repository?.toLowerCase() !== repo.url.toLowerCase())) {
 										filesFound += 1;
 										await writeFile(repo, filePath, packageJSON);
@@ -284,7 +286,7 @@ try {
 						if (currentTokenIndex === 0) {
 							spinner.warn(`Rate limit is reached. 😔 Will wait until ${new Date(reset * 1000).toLocaleTimeString()}.`);
 							spinner.start("Waiting 🕒");
-							await delay((reset + 1) * 1000 - Date.now());
+							await setTimeout((reset + 1) * 1000 - Date.now());
 							spinner.succeed("Waited! ✅");
 						} else {
 							spinner.warn(`Rate limit is reached. Switching to token ${currentTokenIndex + 1} of ${tokens.length}.`);

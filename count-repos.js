@@ -1,10 +1,10 @@
 import "dotenv/config";
 
 import { writeFile } from "node:fs/promises";
+import { setTimeout } from "node:timers/promises";
 
 import { graphql } from "@octokit/graphql";
 import ora from "ora";
-import delay from "delay";
 
 let tokens;
 try { tokens = JSON.parse(process.env.GITHUB_TOKENS); } catch { tokens = [process.env.GITHUB_TOKEN]; }
@@ -54,7 +54,7 @@ try {
 				if (currentTokenIndex === 0) {
 					spinner.warn(`Rate limit is reached. 😔 Will wait until ${new Date(reset * 1000).toLocaleTimeString()}.`);
 					spinner.start("Waiting 🕒");
-					await delay((reset + 1) * 1000 - Date.now());
+					await setTimeout((reset + 1) * 1000 - Date.now());
 					spinner.succeed("Waited! ✅");
 				} else {
 					spinner.warn(`Rate limit is reached. Switching to token ${currentTokenIndex + 1} of ${tokens.length}.`);
@@ -63,7 +63,7 @@ try {
 
 				spinner.start(`Checking count for ${currentStar} stars.`);
 				if (currentTokenIndex === 0) {
-					await delay((reset + 1) * 1000 - Date.now());
+					await setTimeout((reset + 1) * 1000 - Date.now());
 				} else {
 					gql = graphql.defaults({ headers: { authorization: `token ${tokens[currentTokenIndex]}` } });
 				}
