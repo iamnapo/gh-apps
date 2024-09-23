@@ -29,6 +29,7 @@
 				"error",
 				{
 					"ignore": [
+						"@octokit/graphql",
 						"got"
 					]
 				}
@@ -37,17 +38,17 @@
 		"ignorePatterns": "*_packages"
 	},
 	"dependencies": {
-		"@octokit/graphql": "^5.0.5",
-		"dotenv": "^16.0.3",
-		"filenamify": "^5.1.1",
-		"got": "^12.5.3",
-		"ora": "^6.1.2"
+		"@octokit/graphql": "^8.1.1",
+		"dotenv": "^16.4.5",
+		"filenamify": "^6.0.0",
+		"got": "^14.4.2",
+		"ora": "^8.1.0"
 	},
 	"devDependencies": {
-		"eslint": "^8.34.0",
-		"eslint-config-iamnapo": "^28.2.0"
+		"eslint": "^8.57.0",
+		"eslint-config-iamnapo": "^36.0.0"
 	},
 	"engines": {
-		"node": ">=16"
+		"node": ">=20"
 	}
 }
