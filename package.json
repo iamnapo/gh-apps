@@ -21,32 +21,16 @@
 		"start": "node gh-apps.js",
 		"test": "eslint . --cache"
 	},
-	"eslintConfig": {
-		"extends": "iamnapo",
-		"rules": {
-			"no-loop-func": "off",
-			"import/no-unresolved": [
-				"error",
-				{
-					"ignore": [
-						"@octokit/graphql",
-						"got"
-					]
-				}
-			]
-		},
-		"ignorePatterns": "*_packages"
-	},
 	"dependencies": {
 		"@octokit/graphql": "^8.1.1",
 		"dotenv": "^16.4.5",
 		"filenamify": "^6.0.0",
-		"got": "^14.4.2",
+		"got": "^14.4.3",
 		"ora": "^8.1.0"
 	},
 	"devDependencies": {
-		"eslint": "^8.57.0",
-		"eslint-config-iamnapo": "^36.0.0"
+		"eslint": "^8.57.1",
+		"eslint-config-iamnapo": "^37.0.0"
 	},
 	"engines": {
 		"node": ">=20"
